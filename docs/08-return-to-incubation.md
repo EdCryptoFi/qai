@@ -50,7 +50,18 @@ The bonding curve model generates **volume, not just creation value**.
 - Top tokens: $10M+ volume each
 - **If Qubic captures even 0.1% of that dynamic, 1.25x is easily achievable**
 
-### Guardrails
+## Post-Cap Distribution
+
+After the 1.25x cap ($22,500) is reached:
+
+| Recipient | Share | Use |
+|---|---|---|
+| Qubic Incubation | **10%** in perpetuity | Ongoing return to ecosystem |
+| QAI protocol | **90%** in perpetuity | Development, infra, content, growth |
+
+The 90/10 split ensures Qubic benefits indefinitely while QAI remains sustainable — covering Bob indexer VPS, IPFS pinning, domain, and continued development.
+
+## Guardrails
 
 | Rule | Compliance |
 |---|---|

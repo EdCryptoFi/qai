@@ -10,24 +10,32 @@ QAI charges **1% on every buy/sell transaction** on bonding curve tokens. This i
 - **Why 1%:** Industry standard for bonding curve platforms. Low enough for traders. High enough to sustain protocol.
 - **Pricing metric:** `fee = tradeAmount × 1%`
 
+### Secondary: Creation Fees (Standard Tokens + NFTs)
+
+| Type | Fee | Why |
+|---|---|---|
+| Standard token (QRC20) | **100 QU** (~$10) one-time | Covers RPC cost + anti-spam |
+| NFT collection (QRC721) | **100 QU** (~$10) one-time | Same — covers RPC + IPFS |
+| Bonding curve token | **200 QU** (~$20) one-time | Higher — includes curve setup overhead |
+
+Creation fees are not the primary revenue driver but prevent spam and cover operational costs.
+
 ### Why Trading Fees Beat Creation Fees
 
 | Model | Volume per token | QAI earns |
 |---|---|---|
-| Creation fee only (1%) | $1,000 creation value | $10 |
+| Creation fee only (100 QU) | 1 token created | ~$10 |
 | Trading fee (1%) | $100,000 trading volume | $1,000 |
 
-Trading volume is typically **50-200x** creation value. A single successful token can generate more fee revenue than 100 tokens that only exist and never trade.
+Trading volume is typically **50-200x** creation value. A single successful bonding curve token can generate more fee revenue than 100 standard tokens that never trade.
 
-### Secondary: Premium Features (post-launch)
+### Premium Features (post-launch)
 
 | Feature | Model |
 |---|---|
 | Verified badge | One-time fee (e.g., 5,000 QU) |
 | Advanced analytics | Subscription (monthly) |
 | Custom curve parameters | Per-launch fee (e.g., 1,000 QU) |
-
-## Cost Structure
 
 | Cost | Incubation Covers | Post-Incubation |
 |---|---|---|

@@ -92,10 +92,10 @@
 
 ### Why $18k is enough
 
-- **10 weeks dev** at $6k/mo = $13.5k. Bonding curve adds 1-2 weeks over the original plan.
+- **10 weeks dev** at $6k/mo = ~$13k. Bonding curve adds 1-2 weeks over the original plan.
 - **Post-audit costs are zero** — Qubic covers SC audit.
 - **1 year infra** — token creation fees will cover renewal by month 6.
-- **Contingency at 5%** — scope is well-defined, bonding curve contract is the only unknown.
+- **Contingency at 6%** — slightly higher than usual because Bob indexer + WebSocket infra is new to the team.
 
 ## Payment Schedule
 

@@ -20,11 +20,42 @@
                         buy/sell → protocol
 ```
 
+## Architecture: Factory Pattern
+
+Each QAI contract is a **factory** — deployed once via the standard Qubic process (PR → computor vote → IPO). Users create tokens by calling a procedure on the deployed contract, **not** by deploying new contracts.
+
+```
+                   Deployed once                         User action
+QRC20 contract ──────────────────►  issueToken(name, supply, decimals)
+(QAI-I-001)                          │
+                                     ├── Token #1 (memecoin)
+                                     ├── Token #2 (DAO share)
+                                     └── Token #N (...)
+
+QRC20-Bonding contract ──────────►  launchToken(name, supply, curveParams)
+(QAI-I-002)                          │
+                                     ├── Token #1 (bonding curve)
+                                     ├── Token #2 (different curve)
+                                     └── Token #N (...)
+
+QRC721 contract ──────────────────►  issueCollection(name, maxSupply, royalty)
+(QAI-I-003)                          │
+                                     ├── Collection #1 (PFP project)
+                                     ├── Collection #2 (in-game items)
+                                     └── Collection #N (...)
+```
+
+This means:
+- **No PR needed per token** — just an RPC call to the existing contract
+- **No computor voting per token** — contracts are pre-approved
+- **No IPO per token** — one deployment, infinite tokens
+- **Creation time:** ~30 seconds (vs 3-5 weeks today)
+
 ## Three Contract References
 
 ### 1. QRC20 — Standard Fungible Token
 
-Simple ERC-20 equivalent. Create, transfer, approve, balance query.
+Factory for fungible tokens. Each `issueToken()` call creates a new token with its own balance sheet.
 
 | ID | Procedure | Function |
 |---|---|---|
@@ -35,7 +66,7 @@ Simple ERC-20 equivalent. Create, transfer, approve, balance query.
 
 ### 2. QRC20-Bonding — Bonding Curve Token (Pump.fun style)
 
-The flagship contract. Tokens trade via a bonding curve. Protocol earns 1% on every buy/sell.
+Factory for bonding curve tokens. Each `launchToken()` creates a new tradable token with its own curve and balance sheet. The flagship contract — protocol earns 1% on every buy/sell.
 
 ```
 Bonding Curve: price = basePrice + (supply × supply × curveSlope) / SCALE
@@ -88,7 +119,7 @@ struct QRC20Bonding : public ContractBase {
 
 ### 3. QRC721 — Non-Fungible Token
 
-Standard NFT collection. Mint, transfer, approve, royalty, metadata.
+Factory for NFT collections. Each `issueCollection()` creates a new collection with its own minting, royalty, and metadata rules.
 
 | ID | Procedure | Function |
 |---|---|---|
