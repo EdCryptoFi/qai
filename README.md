@@ -31,7 +31,8 @@ qai/
 │   ├── 07-business-model-pricing.md
 │   ├── 08-return-to-incubation.md
 │   ├── 09-milestones-budget.md
-│   └── 10-risks-security.md
+│   ├── 10-risks-security.md
+│   └── 11-implementation-plan.md
 ├── contracts/
 │   ├── QRC20.h           (M1 — fungible token)
 │   ├── QRC20-Bonding.h   (M3 — Pump.fun-style bonding curve)
