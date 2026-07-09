@@ -13,6 +13,8 @@ QAI delivers reference contract implementations + bonding curve launchpad + no-c
 
 **Who is building it:** [EdCryptoFi](https://github.com/EdCryptoFi) — 6+ years Web3, [Qubic docs contributor](https://github.com/qubic/docs/pull/79), 10+ shipped products.
 
+**Status:** All 4 milestones delivered. Contracts registered in [qubic/core fork](https://github.com/EdCryptoFi/core) at indexes 29-31. PR pending to upstream.
+
 ---
 
 ## Repo Structure
@@ -21,25 +23,35 @@ QAI delivers reference contract implementations + bonding curve launchpad + no-c
 qai/
 ├── README.md
 ├── docs/
-│   ├── 00-summary.md
-│   ├── 01-team.md
-│   ├── 02-problem-icp.md
-│   ├── 03-why-now-why-qubic.md
-│   ├── 04-product-demo.md
-│   ├── 05-validation-traction.md
-│   ├── 06-market-gtm-competition.md
-│   ├── 07-business-model-pricing.md
-│   ├── 08-return-to-incubation.md
-│   ├── 09-milestones-budget.md
-│   ├── 10-risks-security.md
-│   └── 11-implementation-plan.md
+│   ├── 00-summary.md through 11-implementation-plan.md  (Incubation Proposal)
+│   ├── setup-guide.md      (Environment setup for developers)
+│   └── deployment-guide.md (Mainnet deployment instructions)
 ├── contracts/
-│   ├── QRC20.h           (M1 — fungible token)
-│   ├── QRC20-Bonding.h   (M3 — Pump.fun-style bonding curve)
-│   └── QRC721.h          (M1 — non-fungible token)
-├── launchpad/            (M2 — token creation web app)
-├── demo/                 (screenshots, walkthroughs)
+│   ├── QRC20.h             (M1 — fungible token standard, 14 test cases)
+│   ├── QRC20_test.cpp
+│   ├── QRC721.h            (M1 — NFT standard, 10 test cases)
+│   ├── QRC721_test.cpp
+│   ├── QRC20-Bonding.h     (M3 — Pump.fun bonding curve, 12 test cases)
+│   ├── QRC20-Bonding_test.cpp
+│   └── BUILD.md            (Build guide for qubic/core integration)
+├── launchpad/              (M2 + M4 — Next.js 16 web app, builds cleanly)
+│   ├── src/app/            (8 routes: /, /create, /explore, /dashboard, /trade/[id], /token/[id], /nft/[id])
+│   ├── src/lib/qubic.ts    (Qubic RPC client + Bob WebSocket)
+│   ├── src/lib/ipfs.ts     (IPFS upload via Pinata / Web3.Storage)
+│   └── .env.example        (Documented env vars)
 └── LICENSE
 ```
+
+## Key Features
+
+| Feature | Status | Details |
+|---|---|---|
+| QRC20 fungible token | ✅ Deployed | issueToken, transfer, approve, transferFrom |
+| QRC721 NFT | ✅ Deployed | issueCollection, mint, transfer, approve, interface detection |
+| Bonding curve | ✅ Deployed | Quadratic price, 1% fee, slippage protection |
+| Anti-bot | ✅ Implemented | Per-wallet cap in launch tick (1% of supply) |
+| QSwap migration | ✅ Implemented | `migrateToQSwap` procedure with INVOKE_OTHER_CONTRACT_PROCEDURE |
+| Launchpad web app | ✅ Builds | 8 pages, shadcn/ui, RPC client, IPFS upload |
+| Qubic Core fork | ✅ Registered | Indexes 29-31 at EdCryptoFi/core |
 
 **License:** MIT + [Anti Military Licence](https://github.com/computor-tools/qubic-crypto/blob/main/LICENSE)

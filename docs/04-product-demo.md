@@ -81,11 +81,13 @@ QPI has no floating point and no power function. The curve uses integer math:
 `price = basePrice + mul(div(mul(supply, supply), SCALE), curveSlope)`. Typical SCALE = 10^6, giving quadratic-like slope without overflow.
 
 | ID | Procedure | Function |
-|---|---|---|
+|---|---|---|---|
 | 1 | `launchToken(name, supply, curveParams)` | `price()` — current curve price |
-| 2 | `buy(amountInQU, minTokensOut)` | `supply()` — current circulating |
-| 3 | `sell(tokenAmount, minQuOut)` | `marketCap()` — current MC |
-| 4 | `withdrawFees()` | `progress()` — % to cap |
+| 2 | `buy(tokenId, minTokensOut)` | `supply(tokenId)` — current circulating |
+| 3 | `sell(tokenId, amount, minQuOut)` | `marketCap(tokenId)` — current MC |
+| 4 | `withdrawFees()` | `progress(tokenId)` — % to cap |
+| 5 | `manualMigrate(tokenId)` | — fallback: set migrated=true if cap reached |
+| 6 | `migrateToQSwap(tokenId, assetIssuer, assetName)` | — issue asset + add liquidity to QSwap |
 
 **State design:**
 
@@ -93,6 +95,7 @@ QPI has no floating point and no power function. The curve uses integer math:
 struct QRC20Bonding : public ContractBase {
     struct BondingToken {
         uint64 name;
+        uint64 symbol;
         id issuer;
         sint64 totalSupply;
         sint64 circulatingSupply;
@@ -100,13 +103,18 @@ struct QRC20Bonding : public ContractBase {
         sint64 curveSlope;         // curve steepness (quadratic: price = basePrice + supply² × slope / SCALE)
         sint64 targetMarketCap;    // when to migrate to QSwap AMM
         sint64 protocolFees;       // accumulated 1% fees
-        bool migrated;             // liquidity sent to QSwap AMM?
+        bit migrated;              // cap hit? trading halted on curve
+        bit liquidityMigrated;     // QSwap migration completed?
+        uint64 launchTick;         // tick when token was created
+        sint64 firstBlockCap;      // max tokens per wallet in launch tick (1% of supply)
     };
 
     HashMap<uint64, BondingToken> tokens;
-    HashMap<id, HashMap<uint64, sint64>> balances; // user → token → amount
+    HashMap<id, HashMap<uint64, sint64>> balances;
+    HashMap<uint64, HashMap<id, sint64>> firstBlockBuys; // anti-bot tracking
+    id protocolOwner;
     uint64 nextTokenId;
-    id protocolOwner;              // address authorized to withdraw fees
+    id qswapContractId;            // QSwap contract address for migration
 };
 ```
 
@@ -169,15 +177,15 @@ Factory for NFT collections. Each `issueCollection()` creates a new collection w
 
 | Layer | Technology |
 |---|---|
-| Framework | Next.js 14 + TypeScript |
+| Framework | Next.js 16 + TypeScript |
 | Wallet | Qubic TS Vault Library |
 | RPC | Qubic RPC endpoints + Bob indexer |
 | Indexer | Bob (local Docker instance), WebSocket for real-time |
 | Storage | IPFS (Pinata / web3.storage) |
-| UI | Tailwind CSS + shadcn/ui |
+| UI | Tailwind CSS v4 + shadcn/ui |
 | Chart | Recharts (bonding curve viz) |
 | Real-time | Bob WebSocket (`ws://localhost:40420/ws/qubic`) — tick stream + logs |
-| DEX integration | QSwap contract calls |
+| DEX integration | QSwap `INVOKE_OTHER_CONTRACT_PROCEDURE` calls |
 
 ### Key Metrics
 
