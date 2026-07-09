@@ -1,13 +1,20 @@
+// QAI Module: QAccessControl.h — Ownable + RBAC (protocolOwner pattern)
+// QAI Module: QReentrancyGuard.h — Reentrancy protection
+// QAI Module: QPausable.h — Emergency pause for trading
+// QAI Module: QSecurity.h — Anti-bot, rate limiting, input validation
+// Copy the guard functions from those files into this contract as needed.
+// Qubic forbids #include, so patterns must be copy-pasted.
+
 using namespace QPI;
 
-constexpr sint64 BONDING_SCALE = 1000000;
-constexpr sint64 BONDING_MAX_SUPPLY = 1000000000;
-constexpr sint64 BONDING_FEE_BPS = 100;
-constexpr sint64 BONDING_MAX_TOKENS = 64;
-constexpr sint64 BONDING_MAX_BALANCES = 512;
-constexpr sint64 BONDING_MAX_HOLDERS = 256;
-constexpr sint64 BONDING_MAX_FIRST_BLOCK_BUYERS = 32;
-constexpr sint64 BONDING_FIRST_BLOCK_CAP_DIVISOR = 100;
+constexpr sint64 QRC20Bonding_SCALE = 1000000;
+constexpr sint64 QRC20Bonding_MAX_SUPPLY = 1000000000;
+constexpr sint64 QRC20Bonding_FEE_BPS = 100;
+constexpr sint64 QRC20Bonding_MAX_TOKENS = 64;
+constexpr sint64 QRC20Bonding_MAX_BALANCES = 512;
+constexpr sint64 QRC20Bonding_MAX_HOLDERS = 256;
+constexpr sint64 QRC20Bonding_MAX_FIRST_BLOCK_BUYERS = 32;
+constexpr sint64 QRC20Bonding_FIRST_BLOCK_CAP_DIVISOR = 100;
 
 struct QRC20Bonding2
 {
@@ -34,9 +41,9 @@ struct QRC20Bonding : public ContractBase
 
     struct StateData
     {
-        HashMap<uint64, BondingToken, BONDING_MAX_TOKENS> tokens;
-        HashMap<id, HashMap<uint64, sint64, BONDING_MAX_BALANCES>, BONDING_MAX_HOLDERS> balances;
-        HashMap<uint64, HashMap<id, sint64, BONDING_MAX_FIRST_BLOCK_BUYERS>, BONDING_MAX_TOKENS> firstBlockBuys;
+        HashMap<uint64, BondingToken, QRC20Bonding_MAX_TOKENS> tokens;
+        HashMap<id, HashMap<uint64, sint64, QRC20Bonding_MAX_BALANCES>, QRC20Bonding_MAX_HOLDERS> balances;
+        HashMap<uint64, HashMap<id, sint64, QRC20Bonding_MAX_FIRST_BLOCK_BUYERS>, QRC20Bonding_MAX_TOKENS> firstBlockBuys;
         id protocolOwner;
         uint64 nextTokenId;
         id qswapContractId;
@@ -80,8 +87,8 @@ struct QRC20Bonding : public ContractBase
         sint64 currentMC;
         sint64 currentPrice;
         sint64 firstBlockTotal;
-        HashMap<uint64, sint64, BONDING_MAX_BALANCES> userBalances;
-        HashMap<id, sint64, BONDING_MAX_FIRST_BLOCK_BUYERS> tokenFirstBlock;
+        HashMap<uint64, sint64, QRC20Bonding_MAX_BALANCES> userBalances;
+        HashMap<id, sint64, QRC20Bonding_MAX_FIRST_BLOCK_BUYERS> tokenFirstBlock;
     };
 
     struct sell_input
@@ -102,7 +109,7 @@ struct QRC20Bonding : public ContractBase
         sint64 scaled;
         sint64 currentMC;
         sint64 currentPrice;
-        HashMap<uint64, sint64, BONDING_MAX_BALANCES> userBalances;
+        HashMap<uint64, sint64, QRC20Bonding_MAX_BALANCES> userBalances;
     };
 
     struct withdrawFees_input {};
@@ -179,7 +186,7 @@ struct QRC20Bonding : public ContractBase
     PUBLIC_PROCEDURE_WITH_LOCALS(launchToken)
     {
         if (input.totalSupply <= 0) return;
-        if (input.totalSupply > BONDING_MAX_SUPPLY) return;
+        if (input.totalSupply > QRC20Bonding_MAX_SUPPLY) return;
         if (input.curveSlope < 0) return;
         if (input.curveBasePrice < 0) return;
         if (input.targetMarketCap <= 0) return;
@@ -195,7 +202,7 @@ struct QRC20Bonding : public ContractBase
         locals.token.protocolFees = 0;
         locals.token.migrated = false;
         locals.token.launchTick = qpi.tick();
-        locals.token.firstBlockCap = input.totalSupply / BONDING_FIRST_BLOCK_CAP_DIVISOR;
+        locals.token.firstBlockCap = QPI::div(input.totalSupply, QRC20Bonding_FIRST_BLOCK_CAP_DIVISOR);
         if (locals.token.firstBlockCap < 1) locals.token.firstBlockCap = 1;
 
         locals.newTokenId = state.get().nextTokenId + 1;
@@ -223,7 +230,7 @@ struct QRC20Bonding : public ContractBase
         else
         {
             locals.supplySq = locals.token.circulatingSupply * locals.token.circulatingSupply;
-            locals.scaled = QPI::div(locals.supplySq, BONDING_SCALE);
+            locals.scaled = QPI::div(locals.supplySq, QRC20Bonding_SCALE);
             locals.price = locals.token.curveBasePrice + (locals.scaled * locals.token.curveSlope);
         }
 
@@ -244,11 +251,11 @@ struct QRC20Bonding : public ContractBase
             state.mut().firstBlockBuys.set(input.tokenId, locals.tokenFirstBlock);
         }
 
-        locals.fee = QPI::div(locals.tokensOut * BONDING_FEE_BPS, 10000);
+        locals.fee = QPI::div(locals.tokensOut * QRC20Bonding_FEE_BPS, 10000);
         if (locals.fee < 0) locals.fee = 0;
 
         locals.token.circulatingSupply += locals.tokensOut - locals.fee;
-        locals.token.protocolFees += QPI::div(locals.quAmount * BONDING_FEE_BPS, 10000);
+        locals.token.protocolFees += QPI::div(locals.quAmount * QRC20Bonding_FEE_BPS, 10000);
 
         state.get().balances.get(qpi.invocator(), locals.userBalances);
         locals.userBalances.get(input.tokenId, locals.userBalance);
@@ -261,7 +268,7 @@ struct QRC20Bonding : public ContractBase
         if (locals.token.circulatingSupply > 0)
         {
             locals.supplySq = locals.token.circulatingSupply * locals.token.circulatingSupply;
-            locals.scaled = QPI::div(locals.supplySq, BONDING_SCALE);
+            locals.scaled = QPI::div(locals.supplySq, QRC20Bonding_SCALE);
             locals.currentPrice = locals.token.curveBasePrice + (locals.scaled * locals.token.curveSlope);
             locals.currentMC = locals.currentPrice * locals.token.circulatingSupply;
 
@@ -290,7 +297,7 @@ struct QRC20Bonding : public ContractBase
         else
         {
             locals.supplySq = locals.token.circulatingSupply * locals.token.circulatingSupply;
-            locals.scaled = QPI::div(locals.supplySq, BONDING_SCALE);
+            locals.scaled = QPI::div(locals.supplySq, QRC20Bonding_SCALE);
             locals.price = locals.token.curveBasePrice + (locals.scaled * locals.token.curveSlope);
         }
 
@@ -299,7 +306,7 @@ struct QRC20Bonding : public ContractBase
         locals.quOut = input.amount * locals.price;
         if (locals.quOut < input.minQuOut) return;
 
-        locals.fee = QPI::div(locals.quOut * BONDING_FEE_BPS, 10000);
+        locals.fee = QPI::div(locals.quOut * QRC20Bonding_FEE_BPS, 10000);
         if (locals.fee < 0) locals.fee = 0;
 
         locals.token.circulatingSupply -= input.amount;
@@ -319,7 +326,7 @@ struct QRC20Bonding : public ContractBase
         if (locals.token.circulatingSupply > 0)
         {
             locals.supplySq = locals.token.circulatingSupply * locals.token.circulatingSupply;
-            locals.scaled = QPI::div(locals.supplySq, BONDING_SCALE);
+            locals.scaled = QPI::div(locals.supplySq, QRC20Bonding_SCALE);
             locals.currentPrice = locals.token.curveBasePrice + (locals.scaled * locals.token.curveSlope);
             locals.currentMC = locals.currentPrice * locals.token.circulatingSupply;
 
@@ -367,7 +374,7 @@ struct QRC20Bonding : public ContractBase
             else
             {
                 locals.supplySq = locals.token.circulatingSupply * locals.token.circulatingSupply;
-                locals.scaled = QPI::div(locals.supplySq, BONDING_SCALE);
+                locals.scaled = QPI::div(locals.supplySq, QRC20Bonding_SCALE);
                 locals.slope = locals.scaled * locals.token.curveSlope;
                 output.price = locals.token.curveBasePrice + locals.slope;
             }
@@ -391,7 +398,7 @@ struct QRC20Bonding : public ContractBase
             else
             {
                 locals.sq = locals.token.circulatingSupply * locals.token.circulatingSupply;
-                locals.sc = QPI::div(locals.sq, BONDING_SCALE);
+                locals.sc = QPI::div(locals.sq, QRC20Bonding_SCALE);
                 locals.currentPrice = locals.token.curveBasePrice + (locals.sc * locals.token.curveSlope);
                 output.cap = locals.currentPrice * locals.token.circulatingSupply;
             }
@@ -411,7 +418,7 @@ struct QRC20Bonding : public ContractBase
                 else
                 {
                     locals.sq = locals.token.circulatingSupply * locals.token.circulatingSupply;
-                    locals.sc = QPI::div(locals.sq, BONDING_SCALE);
+                    locals.sc = QPI::div(locals.sq, QRC20Bonding_SCALE);
                     locals.currentPrice = locals.token.curveBasePrice + (locals.sc * locals.token.curveSlope);
                     locals.currentMC = locals.currentPrice * locals.token.circulatingSupply;
                     output.percent = QPI::div(locals.currentMC * 100, locals.token.targetMarketCap);
@@ -442,7 +449,7 @@ struct QRC20Bonding : public ContractBase
         if (locals.token.circulatingSupply > 0)
         {
             locals.sq = locals.token.circulatingSupply * locals.token.circulatingSupply;
-            locals.sc = QPI::div(locals.sq, BONDING_SCALE);
+            locals.sc = QPI::div(locals.sq, QRC20Bonding_SCALE);
             locals.currentPrice = locals.token.curveBasePrice + (locals.sc * locals.token.curveSlope);
             locals.currentMC = locals.currentPrice * locals.token.circulatingSupply;
 
@@ -469,6 +476,12 @@ struct QRC20Bonding : public ContractBase
         BondingToken token;
         sint64 quLiquidity;
         sint64 tokenLiquidity;
+        QSWAP::IssueAsset_input qsIssue;
+        QSWAP::IssueAsset_output qsIssueOut;
+        QSWAP::CreatePool_input qsPool;
+        QSWAP::CreatePool_output qsPoolOut;
+        QSWAP::AddLiquidity_input qsAdd;
+        QSWAP::AddLiquidity_output qsAddOut;
     };
 
     PUBLIC_PROCEDURE_WITH_LOCALS(migrateToQSwap)
@@ -479,45 +492,39 @@ struct QRC20Bonding : public ContractBase
         if (locals.token.protocolFees <= 0) return;
         if (locals.token.circulatingSupply <= 0) return;
 
-        locals.quLiquidity = locals.token.protocolFees / 2;
-        locals.tokenLiquidity = locals.token.circulatingSupply / 4;
+        locals.quLiquidity = QPI::div(locals.token.protocolFees, 2);
+        locals.tokenLiquidity = QPI::div(locals.token.circulatingSupply, 4);
         if (locals.quLiquidity < 1) return;
         if (locals.tokenLiquidity < 1) return;
 
         // Issue the asset on Qubic via QSwap
-        QSWAP::IssueAsset_input qsIssue;
-        qsIssue.assetName = input.assetName;
-        qsIssue.numberOfShares = locals.token.totalSupply;
-        qsIssue.unitOfMeasurement = 0;
-        qsIssue.numberOfDecimalPlaces = 0;
-        QSWAP::IssueAsset_output qsIssueOut;
-        INVOKE_OTHER_CONTRACT_PROCEDURE(QSWAP, IssueAsset, qsIssue, qsIssueOut, qpi.invocationReward());
+        locals.qsIssue.assetName = input.assetName;
+        locals.qsIssue.numberOfShares = locals.token.totalSupply;
+        locals.qsIssue.unitOfMeasurement = 0;
+        locals.qsIssue.numberOfDecimalPlaces = 0;
+        INVOKE_OTHER_CONTRACT_PROCEDURE(QSWAP, IssueAsset, locals.qsIssue, locals.qsIssueOut, qpi.invocationReward());
 
         // Transfer QU to QSwap (becomes invocationReward for AddLiquidity)
         qpi.transfer(state.get().qswapContractId, locals.quLiquidity);
 
-        // Transfer asset tokens to QSwap (assetName, issuer, currentOwner, currentPossessor, amount, newOwnerAndPossessor)
+        // Transfer asset tokens to QSwap
         qpi.transferShareOwnershipAndPossession(input.assetName, input.assetIssuer, SELF, SELF, locals.tokenLiquidity, state.get().qswapContractId);
 
         // Create pool on QSwap
-        QSWAP::CreatePool_input qsPool;
-        qsPool.assetIssuer = input.assetIssuer;
-        qsPool.assetName = input.assetName;
-        QSWAP::CreatePool_output qsPoolOut;
-        INVOKE_OTHER_CONTRACT_PROCEDURE(QSWAP, CreatePool, qsPool, qsPoolOut, 0);
+        locals.qsPool.assetIssuer = input.assetIssuer;
+        locals.qsPool.assetName = input.assetName;
+        INVOKE_OTHER_CONTRACT_PROCEDURE(QSWAP, CreatePool, locals.qsPool, locals.qsPoolOut, 0);
 
         // Add liquidity to QSwap
-        QSWAP::AddLiquidity_input qsAdd;
-        qsAdd.assetIssuer = input.assetIssuer;
-        qsAdd.assetName = input.assetName;
-        qsAdd.assetAmountDesired = locals.tokenLiquidity;
-        qsAdd.quAmountMin = locals.quLiquidity;
-        qsAdd.assetAmountMin = locals.tokenLiquidity;
-        QSWAP::AddLiquidity_output qsAddOut;
-        INVOKE_OTHER_CONTRACT_PROCEDURE(QSWAP, AddLiquidity, qsAdd, qsAddOut, locals.quLiquidity);
+        locals.qsAdd.assetIssuer = input.assetIssuer;
+        locals.qsAdd.assetName = input.assetName;
+        locals.qsAdd.assetAmountDesired = locals.tokenLiquidity;
+        locals.qsAdd.quAmountMin = locals.quLiquidity;
+        locals.qsAdd.assetAmountMin = locals.tokenLiquidity;
+        INVOKE_OTHER_CONTRACT_PROCEDURE(QSWAP, AddLiquidity, locals.qsAdd, locals.qsAddOut, locals.quLiquidity);
 
         // Burn LP tokens
-        qpi.transfer(NULL_ID, qsAddOut.userIncreaseLiquidity);
+        qpi.transfer(NULL_ID, locals.qsAddOut.userIncreaseLiquidity);
 
         locals.token.liquidityMigrated = true;
         state.mut().tokens.set(input.tokenId, locals.token);

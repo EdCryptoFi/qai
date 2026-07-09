@@ -1,3 +1,8 @@
+// QAI Module: QSafeMath.h — Safe arithmetic patterns
+// QAI Module: QAccessControl.h — Ownable + RBAC patterns
+// Copy the guard functions from those files into this contract as needed.
+// Qubic forbids #include, so patterns must be copy-pasted.
+
 using namespace QPI;
 
 constexpr sint64 QRC20_MAX_SUPPLY = 1000000000000000;
@@ -77,6 +82,10 @@ struct QRC20 : public ContractBase
     struct balanceOf_output
     {
         sint64 balance;
+    };
+    struct balanceOf_locals
+    {
+        sint64 bal;
     };
 
     struct totalSupply_input {};
@@ -174,11 +183,10 @@ struct QRC20 : public ContractBase
         state.mut().balances.set(input.to, locals.toBalance + input.amount);
     }
 
-    PUBLIC_FUNCTION(balanceOf)
+    PUBLIC_FUNCTION_WITH_LOCALS(balanceOf)
     {
-        sint64 bal;
-        if (state.get().balances.get(input.owner, bal))
-            output.balance = bal;
+        if (state.get().balances.get(input.owner, locals.bal))
+            output.balance = locals.bal;
         else
             output.balance = 0;
     }

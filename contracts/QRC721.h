@@ -1,3 +1,8 @@
+// QAI Module: QAccessControl.h — Ownable + RBAC patterns
+// QAI Module: QPausable.h — Emergency pause pattern
+// Copy the guard functions from those files into this contract as needed.
+// Qubic forbids #include, so patterns must be copy-pasted.
+
 using namespace QPI;
 
 constexpr uint64 QRC721_MAX_COLLECTIONS = 64;
@@ -6,9 +11,9 @@ constexpr uint64 QRC721_MAX_OWNERS = 1024;
 constexpr uint64 QRC721_MAX_SUPPLY = 1000000;
 constexpr uint16 QRC721_MAX_ROYALTY_BPS = 10000;
 
-constexpr uint64 QAI_INTERFACE_QRC721 = 0x01;
-constexpr uint64 QAI_INTERFACE_METADATA = 0x02;
-constexpr uint64 QAI_INTERFACE_ROYALTY = 0x03;
+constexpr uint64 QRC721_INTERFACE_QRC721 = 0x01;
+constexpr uint64 QRC721_INTERFACE_METADATA = 0x02;
+constexpr uint64 QRC721_INTERFACE_ROYALTY = 0x03;
 
 struct QRC7212
 {
@@ -220,9 +225,9 @@ struct QRC721 : public ContractBase
 
     PUBLIC_FUNCTION(supportsInterface)
     {
-        if (input.interfaceId == QAI_INTERFACE_QRC721)
+        if (input.interfaceId == QRC721_INTERFACE_QRC721)
             output.supported = true;
-        else if (input.interfaceId == QAI_INTERFACE_METADATA)
+        else if (input.interfaceId == QRC721_INTERFACE_METADATA)
             output.supported = true;
         else
             output.supported = false;
